@@ -63,7 +63,7 @@
                       v-model="name_selected"
                       label="Usuario"
                       filled
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       :rules="nameRules"
                       required
@@ -73,7 +73,7 @@
                       v-model="code_selected"
                       label="Code"
                       filled
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       :rules="nameRules"
                       required
@@ -83,7 +83,7 @@
                     <v-checkbox
                       v-model="admin_selected"
                       label="Admin"
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       >    
                     </v-checkbox>
@@ -91,7 +91,7 @@
                     <v-checkbox
                       v-model="active_selected"
                       label="Active"
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       >                      
                     </v-checkbox>              
@@ -127,7 +127,7 @@
                       label="Usuario"
                       filled
                       readonly
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       dense>
                     </v-text-field>
@@ -136,14 +136,14 @@
                       label="Code"
                       filled
                       readonly
-                      color="#cccc00"
+                      color="#175380"
                       rounded                    
                       dense>
                     </v-text-field> 
                     <v-checkbox
                       v-model="admin_selected"
                       label="Admin"
-                      color="#cccc00"
+                      color="#175380"
                       readonly
                       rounded
                       >                      
@@ -151,7 +151,7 @@
                     <v-checkbox
                       v-model="active_selected"
                       label="Active"
-                      color="#cccc00"
+                      color="#175380"
                       readonly
                       rounded
                       >                      
@@ -218,6 +218,7 @@
 
 <script>
 //import { Datetime } from 'vue-datetime';
+import Vue from "vue";
 
 export default {
   name: "UserListComponent",
@@ -269,7 +270,7 @@ export default {
     async getAllUsersByCodeCompany()
     {
        try{
-          const response = await fetch('http://localhost:8080/user/getUsersByCodeCompany?codeCompany='+ this.empresa_code, 
+          const response = await fetch(Vue.prototype.$urlhermes + '/user/getUsersByCodeCompany?codeCompany='+ this.empresa_code, 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -307,7 +308,7 @@ export default {
             "companyCode":this.empresa_code,
             "active":this.active_selected
           }
-          const response = await fetch('http://localhost:8080/user', 
+          const response = await fetch(Vue.prototype.$urlhermes + '/user', 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -352,7 +353,7 @@ export default {
             "companyCode":this.empresa_code,
             "active":this.active_selected
           }
-          const response = await fetch('http://localhost:8080/user', 
+          const response = await fetch(Vue.prototype.$urlhermes + '/user', 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -381,7 +382,7 @@ export default {
     {
         try {
 
-          const response = await fetch('http://localhost:8080/user/' + this.id_selected, 
+          const response = await fetch(Vue.prototype.$urlhermes + '/user/' + this.id_selected, 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',

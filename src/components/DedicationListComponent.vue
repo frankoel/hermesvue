@@ -1,12 +1,12 @@
 <template>
   <div class="visitsListComponent">
-    <h2 class="fontPrincipal">{{ title }}</h2>
+    <h2 class="fontPrincipal">{{ title }} {{ proyecto_name }}</h2>
 
     <v-snackbar
-    v-model="snackbar"
-    :timeout="timeout"
-    top
-    width="400px"
+      v-model="snackbar"
+      :timeout="timeout"
+      top
+      width="400px"
     >
       <v-text-field v-model="texto"></v-text-field>
 
@@ -26,7 +26,7 @@
     <v-data-table
       
       :headers="headers"
-      :items="comps"
+      :items="dedications"
       show-expand
     >
 
@@ -38,17 +38,17 @@
           <v-row
           style="margin-top: 20px;">
             <v-autocomplete
-              v-model="code_selection"
-              :items="comps_complete"                                            
+              v-model="user_selection"
+              :items="users"                                            
               rounded
               filled
               dense
-              label="Selecciona la compañía"
+              label="Selecciona el usuario"
               color="#175380"
               item-color="black"
-              @change="getAllCompanies"
+              @change="getAllDedicationsByUserAndCodeCompany"
             ></v-autocomplete> 
-          </v-row>  
+          </v-row>   
 
           <v-row
             align="center"
@@ -59,8 +59,8 @@
           </v-col>
             <v-col align-self="end">              
               <v-sheet class="pa-6 ma-6">
-                <span class="fontPrincipal word-break" @click="show_create_company_dialog()">Crear Empresa</span>
-                <v-icon  class="mr-2" @click="show_create_company_dialog()">
+                <span class="fontPrincipal word-break" @click="show_create_dedication_dialog()">Crear Dedicación</span>
+                <v-icon  class="mr-2" @click="show_create_dedication_dialog()">
                 mdi-plus
               </v-icon>  
               </v-sheet>
@@ -70,40 +70,28 @@
           <v-dialog v-model="dialog" max-width="550px">
             <v-card>
               <v-card-title class="colorPrincipal">
-                <span class="white--text fontPrincipal word-break">Crear/Editar Empresa</span>
+                <span class="white--text fontPrincipal word-break">Crear/Editar Dedicación</span>
               </v-card-title>
               
               <v-card-text class="pt-4">
-                <v-container>
+                <v-container>                  
                   <v-row>
-                    <v-text-field
-                      v-model="name_selected"
-                      label="Empresa"
+                    <DateTimeField id="t-datetime-picker" filled label="Hora inicial" 
+                    v-model="hours_init_selected" append-icon="mdi-calendar" readonly></DateTimeField>
+                  </v-row> 
+                 <v-row>                   
+                  <DateTimeField id="t-datetime-picker" filled label="Hora final" 
+                  v-model="hours_end_selected" append-icon="mdi-calendar" readonly></DateTimeField>
+                 </v-row> 
+                <v-row> 
+                    <v-textarea
+                      v-model="description_selected"
+                      label="Descripción"
                       filled
                       color="#175380"
                       rounded
-                      :rules="nameRules"
-                      required
                       dense>
-                    </v-text-field>
-                    <v-text-field
-                      v-model="code_selected"
-                      label="Código"
-                      filled
-                      color="#175380"
-                      rounded
-                      :rules="nameRules"
-                      required
-                      dense>
-                    </v-text-field> 
-      
-                    <v-checkbox
-                      v-model="active_selected"
-                      label="Active"
-                      color="#175380"
-                      rounded
-                      >                      
-                    </v-checkbox>              
+                    </v-textarea> 
                   </v-row>                    
                 </v-container>
               </v-card-text>
@@ -113,10 +101,10 @@
                 <v-btn class="btnPrincipal" text @click="close">
                     <span class="white--text">Cancelar</span>
                 </v-btn>                
-                <v-btn class="btnPrincipal" text @click="updateCompany" v-if="is_update()">
+                <v-btn class="btnPrincipal" text @click="updateDedication" v-if="is_update()">
                     <span class="white--text">Actualizar</span>
                 </v-btn>  
-                <v-btn class="btnPrincipal" text @click="createCompany" v-if="is_create()">
+                <v-btn class="btnPrincipal" text @click="createDedication" v-if="is_create()">
                     <span class="white--text">Crear</span>
                 </v-btn>                 
               </v-card-actions>
@@ -125,39 +113,28 @@
           <v-dialog v-model="dialog_delete" max-width="550px">
             <v-card>
               <v-card-title class="colorPrincipal">
-                <span class="white--text fontPrincipal word-break">Eliminar Empresa</span>
+                <span class="white--text fontPrincipal word-break">Eliminar Dedicación</span>
               </v-card-title>
               
               <v-card-text class="pt-4">
                 <v-container>
                   <v-row>
-                    <v-text-field
-                      v-model="name_selected"
-                      label="Empresa"
+                    <v-text-field label="Hora inicial" v-model="hours_init_selected_format" readonly></v-text-field>
+                  </v-row> 
+                  <v-row>
+                    <v-text-field label="Hora final" v-model="hours_end_selected_format" readonly></v-text-field>
+                  </v-row> 
+                <v-row> 
+                    <v-textarea
+                      v-model="description_selected"
+                      label="Descripción"
                       filled
-                      readonly
                       color="#175380"
                       rounded
-                      dense>
-                    </v-text-field>
-                    <v-text-field
-                      v-model="code_selected"
-                      label="Código"
-                      filled
                       readonly
-                      color="#175380"
-                      rounded                    
                       dense>
-                    </v-text-field> 
-                    <v-checkbox
-                      v-model="active_selected"
-                      label="Active"
-                      color="#175380"
-                      readonly
-                      rounded
-                      >                      
-                    </v-checkbox>                      
-                  </v-row>                    
+                    </v-textarea> 
+                  </v-row>                 
                 </v-container>
               </v-card-text>
 
@@ -166,7 +143,7 @@
                 <v-btn class="btnPrincipal" text @click="close_delete">
                     <span class="white--text">Cancelar</span>
                 </v-btn>                
-                <v-btn class="btnPrincipal" text @click="deleteCompany">
+                <v-btn class="btnPrincipal" text @click="deleteDedication">
                     <span class="white--text">Eliminar</span>
                 </v-btn>  
               </v-card-actions>
@@ -179,42 +156,26 @@
           {{ item.id }}
         </v-chip> 
       </template>      
-      <template v-slot:[`item.name`]="{ item }">
+      <template v-slot:[`item.hoursInit`]="{ item }">
         <v-chip>
-          {{ item.name }}
+          {{ getValue(item.hoursInit) }}
         </v-chip> </template
-      ><template v-slot:[`item.code`]="{ item }">
+      >
+      <template v-slot:[`item.hoursEnd`]="{ item }">
         <v-chip>
-          {{ item.code }}
+          {{ getValue(item.hoursEnd) }}
         </v-chip>
       </template>
-      <template v-slot:[`item.active`]="{ item }">
-        <v-chip v-if="is_active(item)">
-          SI
+      <template v-slot:[`item.description`]="{ item }">
+        <v-chip>
+          {{ item.description }}
         </v-chip>
-        <v-chip v-if="is_inactive(item)">
-          NO
-        </v-chip>        
-      </template>  
-      <template v-slot:[`item.actions`]="{ item }">    
-        <v-btn icon id="no-background-hover"
-          :href= getUrlProject(item)
-          >
-          <v-icon class="mr-2">
-          mdi-briefcase
-        </v-icon>
-      </v-btn>  
-        <v-btn icon id="no-background-hover"
-          :href= getUrlUser(item)
-          >
-          <v-icon class="mr-2">
-          mdi-account
-        </v-icon>         
-      </v-btn>          
-        <v-icon class="mr-2" @click="show_edit_company_dialog(item)">
+      </template>
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-icon class="mr-2" @click="show_edit_dedication_dialog(item)">
           mdi-table-edit
         </v-icon>
-        <v-icon class="mr-2" @click="show_delete_company_dialog(item)">>
+        <v-icon class="mr-2" @click="show_delete_dedication_dialog(item)">>
           mdi-delete
         </v-icon>        
       </template>    
@@ -223,24 +184,33 @@
 </template>
 
 <script>
-//import { Datetime } from 'vue-datetime';
-import Vue from "vue";
+  //import {DateTime} from 'luxon';
+  import Vue from "vue";
+  import DateTimeField from '@/components/DateTimeField'
+  import {DateTime} from 'luxon';
 
 export default {
-  name: "CompanyListComponent",
-  props: ["title"],
+  name: "DedicationListComponent",
+  props: ["title","proyecto_name","proyecto_code", "empresa_code"],
 
   components: {
-    //Datetime,
+    
+    DateTimeField,
   },
 
   data: () => ({
-    comps: [],
-    comps_complete: [],
+    dedications: [],
     id_selected:"",
-    name_selected:"",
-    code_selected:"",
-    active_selected:true,
+    hours_init_selected: "",
+    hours_end_selected: "",
+    hours_init_selected_format: "",
+    hours_end_selected_format: "",
+    description_selected:"",
+
+    user_selection:"",
+    user_selected:"",
+    users:[],
+
     edit_title: "",
     type:"create",
     texto:"",
@@ -249,7 +219,6 @@ export default {
     nameRules: [
       v => !!v || 'dato requerido',
     ],
-    code_selection:"",
     snackbar: false,
     timeout: 4000,
     headers: [
@@ -259,39 +228,32 @@ export default {
         sortable: true,
         value: "id",
       },
-      { text: "Nombre Empresa", value: "name", sortable: true },
-      { text: "Código", value: "code", sortable: true },
-      { text: "Activa", value: "active", sortable: true },
+      { text: "Hora inicial", value: "hoursInit", sortable: true },
+      { text: "Hora final", value: "hoursEnd", sortable: true },
+      { text: "Descripción", value: "description", sortable: false },
       { text: "", value: "actions", align: "left", sortable: false },
     ],
   }),
   created() {
     this.initialize();
 
-    /*let a = {"id":4,
-      "name": "ejemplo",
-      "code": "LAQUESEA",
-      "active":"True",
-    }
-    this.comps.push(a);*/
+    this.getAllUsersByCodeCompany();
 
-    this.code_selection = 'Todas';
-    this.getAllCompanies();
+  },
+  computed: {
 
   },
   methods: {
 
-    async getAllCompanyByCode() 
+    getValue(e){
+      return DateTime.fromISO(e)
+            .setLocale("es-ES")
+            .toFormat(`dd/MM/yyyy HH:mm`);
+    },
+    async getAllUsersByCodeCompany()
     {
-        try {
-          let code_filter = "";
-          if (this.code_selection != 'Todas')
-          {
-            let arr = this.code_selection.split('--');
-            code_filter = arr[1].trim();
-          }
-
-          const response = await fetch(Vue.prototype.$urlhermes + '/company/getCompanyByCode?code=' + code_filter, 
+       try{
+          const response = await fetch(Vue.prototype.$urlhermes + '/user/getUsersByCodeCompany?codeCompany='+ this.empresa_code, 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -302,53 +264,46 @@ export default {
                     });
           const res_json = await response.json();
           console.log(res_json);
-          this.comps = [];
-          this.comps.push(res_json);
-
+          
+          res_json.forEach(element => {
+            this.users.push(element.code + " -- " + element.name);
+          });
         } catch (error) {
           console.log("Error occurred:", error);
-          this.comps = [];
+          this.users = [];
         }
     },
 
-    async getAllCompanies() 
+    async getAllDedicationsByUserAndCodeCompany()
     {
-        if (this.code_selection == 'Todas')
-        {
+       try{
 
-          try {
-        
-            const response = await fetch(Vue.prototype.$urlhermes + '/company/getAllCompany', 
-                      {
-                        headers: new Headers({
-                          'Content-Type': 'application/json;charset=UTF-8',
-                          'Accept': '*/*',
-                        }), 
-                        mode: 'cors', 
-                        method: 'GET',
-                      });
-            const res_json = await response.json();
-            console.log(res_json);
-            this.comps = res_json;
-
-            this.comps_complete = [];
-            this.comps_complete.push('Todas');
-            res_json.forEach(element => {
-            this.comps_complete.push(element.name + " -- " + element.code);
-          });
-
-          } catch (error) {
-            console.log("Error occurred:", error);
-            this.comps = [];
+          if (this.user_selection != '')
+          {
+            let arr = this.user_selection.split('--');
+            this.user_selected = arr[0].trim();
           }
-        }
-        else
-        {
-            this.getAllCompanyByCode();
+            
+          const response = await fetch(Vue.prototype.$urlhermes + '/dedication/getDedicationByProjectAndUser?codProject='+ 
+                    this.proyecto_code + "&codUser=" + this.user_selected, 
+                    {
+                      headers: new Headers({
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'Accept': '*/*',
+                      }), 
+                      mode: 'cors', 
+                      method: 'GET',
+                    });
+          const res_json = await response.json();
+          console.log(res_json);
+          this.dedications = res_json;
+        } catch (error) {
+          console.log("Error occurred:", error);
+          this.dedications = [];
         }
     },
 
-    async createCompany() 
+    async createDedication() 
     {
 
         if (this.validate() == false)
@@ -361,11 +316,13 @@ export default {
         try {
 
           let data = {
-            "code":this.code_selected,
-            "name":this.name_selected,
-            "active":this.active_selected
+            "hoursInit":this.hours_init_selected,
+            "hoursEnd":this.hours_end_selected,
+            "description":this.description_selected,
+            "projectCode":this.proyecto_code,
+            "user":this.user_selected
           }
-          const response = await fetch(Vue.prototype.$urlhermes + '/company', 
+          const response = await fetch(Vue.prototype.$urlhermes + '/dedication', 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -378,12 +335,11 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection == 'Todas';
-          this.getAllCompanies();     
+          this.getAllDedicationsByUserAndCodeCompany();     
           
           this.close();
 
-          this.texto = "Empresa creada correctamente";
+          this.texto = "Dedicación creada correctamente";
           this.snackbar = true;
 
         } catch (error) {
@@ -391,7 +347,7 @@ export default {
         }
     },
 
-    async updateCompany() 
+    async updateDedication() 
     {
         if (this.validate() == false)
         {
@@ -404,11 +360,13 @@ export default {
 
           let data = {
             "id": this.id_selected,
-            "code":this.code_selected,
-            "name":this.name_selected,
-            "active":this.active_selected
+            "hoursInit":this.hours_init_selected,
+            "hoursEnd":this.hours_end_selected,
+            "description":this.description_selected,
+            "projectCode":this.proyecto_code,
+            "user":this.user_selected
           }
-          const response = await fetch(Vue.prototype.$urlhermes + '/company', 
+          const response = await fetch(Vue.prototype.$urlhermes + '/dedication', 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -421,12 +379,11 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection == 'Todas';
-          this.getAllCompanies();      
+          this.getAllDedicationsByUserAndCodeCompany();     
           
           this.close();
 
-          this.texto = "Empresa actualizada correctamente";
+          this.texto = "Dedicación actualizada correctamente";
           this.snackbar = true;
 
         } catch (error) {
@@ -434,11 +391,11 @@ export default {
         }
     },
    
-    async deleteCompany() 
+    async deleteDedication() 
     {
         try {
 
-          const response = await fetch(Vue.prototype.$urlhermes + '/company/' + this.id_selected, 
+          const response = await fetch(Vue.prototype.$urlhermes + '/dedication/' + this.id_selected, 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -450,18 +407,16 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection == 'Todas';
-          this.getAllCompanies();   
+          this.getAllDedicationsByUserAndCodeCompany();   
           
           this.close_delete();
 
-          this.texto = "Empresa eliminada correctamente";
+          this.texto = "Dedicación eliminada correctamente";
           this.snackbar = true;
 
         } catch (error) {
           console.log("Error occurred:", error);
         }
-
 
     },
 
@@ -470,30 +425,32 @@ export default {
 
     },
 
-    show_create_company_dialog() {
+    show_create_dedication_dialog() {
       this.id_selected = '';
-      this.name_selected = '';
-      this.code_selected = '';
-      this.active_selected = true;
+      this.hours_init_selected = '';
+      this.hours_end_selected = '';
+      this.description_selected = '';
       this.dialog = true;
       this.type = 'create';
     },
 
 
-    show_edit_company_dialog(item) {
+    show_edit_dedication_dialog(item) {
       this.id_selected = item.id;
-      this.name_selected = item.name;
-      this.code_selected = item.code;
-      this.active_selected = item.active;
+      this.hours_init_selected = item.hoursInit;
+      this.hours_end_selected = item.hoursEnd;
+      this.description_selected = item.description;
       this.dialog = true;
       this.type = 'update';
     },
 
-    show_delete_company_dialog(item) {
+    show_delete_dedication_dialog(item) {
       this.id_selected = item.id;
-      this.name_selected = item.name;
-      this.code_selected = item.code;
-      this.active_selected = item.active;
+      this.hours_init_selected = item.hoursInit;
+      this.hours_end_selected = item.hoursEnd;
+      this.hours_init_selected_format = this.getValue(item.hoursInit);
+      this.hours_end_selected_format = this.getValue(item.hoursEnd);      
+      this.description_selected = item.description;
       this.dialog_delete = true;
     },
 
@@ -522,25 +479,13 @@ export default {
     },
 
     validate() {
-      return this.name_selected != '' && this.code_selected != ''; 
+      return this.hours_init_selected != '' && this.hours_end_selected != ''; 
     },
-
-    getUrlProject(item){
-      return this.getUrl('project', item);
-    },
-
-    getUrlUser(item){
-      return this.getUrl('user', item);
-    },
-
-    getUrl(destino, item){
-      return "/" + destino +"?code=" + item.code + "&name=" + item.name;
-    }
-
   
   },
 };
 </script>
+
 
 <style lang="scss">
 #no-background-hover::before {

@@ -4,6 +4,7 @@ import VueRouter from "vue-router";
 import CompanyMonitoring from "@/views/CompanyMonitoring";
 import ProjectMonitoring from "@/views/ProjectMonitoring";
 import UserMonitoring from "@/views/UserMonitoring";
+import DedicationMonitoring from "@/views/DedicationMonitoring";
 
 Vue.use(VueRouter);
 
@@ -36,6 +37,11 @@ const routes = [
     path: "/user",
     name: "User",
     component: UserMonitoring,
+  },  
+  {
+    path: "/dedication",
+    name: "Dedication",
+    component: DedicationMonitoring,
   },     
 ];
 

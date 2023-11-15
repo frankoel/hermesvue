@@ -1,7 +1,7 @@
 <template class="client">
   <div>
     <h1 class="fontPrincipal">Usuarios</h1>
-    <UserListComponent title="Todos los usuarios de la empresa" :empresa_name="this.name" :empresa_code="this.code"/>
+    <UserListComponent title="Todos los usuarios de la empresa" :empresa_name="this.name" :empresa_code="this.code" />
   </div>
 </template>
 

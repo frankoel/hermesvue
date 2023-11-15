@@ -63,7 +63,7 @@
                       v-model="name_selected"
                       label="Proyecto"
                       filled
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       :rules="nameRules"
                       required
@@ -73,7 +73,7 @@
                       v-model="code_selected"
                       label="Code"
                       filled
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       :rules="nameRules"
                       required
@@ -84,7 +84,7 @@
                       v-model="description_selected"
                       label="Descripción"
                       filled
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       dense>
                     </v-textarea> 
@@ -92,7 +92,7 @@
                     <v-checkbox
                       v-model="active_selected"
                       label="Active"
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       >                      
                     </v-checkbox>              
@@ -128,7 +128,7 @@
                       label="Project"
                       filled
                       readonly
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       dense>
                     </v-text-field>
@@ -137,7 +137,7 @@
                       label="Code"
                       filled
                       readonly
-                      color="#cccc00"
+                      color="#175380"
                       rounded                    
                       dense>
                     </v-text-field> 
@@ -145,7 +145,7 @@
                       v-model="description_selected"
                       label="Descripción"
                       filled
-                      color="#cccc00"
+                      color="#175380"
                       rounded
                       readonly
                       dense>
@@ -153,7 +153,7 @@
                     <v-checkbox
                       v-model="active_selected"
                       label="Active"
-                      color="#cccc00"
+                      color="#175380"
                       readonly
                       rounded
                       >                      
@@ -203,7 +203,14 @@
           NO
         </v-chip>        
       </template>  
-      <template v-slot:[`item.actions`]="{ item }">         
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-btn icon id="no-background-hover"
+          :href= getUrlDedication(item)
+          >
+          <v-icon class="mr-2">
+          mdi-timetable
+        </v-icon>
+      </v-btn>                   
         <v-icon class="mr-2" @click="show_edit_project_dialog(item)">
           mdi-table-edit
         </v-icon>
@@ -216,14 +223,14 @@
 </template>
 
 <script>
-//import { Datetime } from 'vue-datetime';
+import Vue from "vue";
 
 export default {
   name: "ProjectListComponent",
   props: ["title","empresa_name","empresa_code"],
 
   components: {
-    //Datetime,
+   
   },
 
   data: () => ({
@@ -267,7 +274,7 @@ export default {
     async getAllProjectsByCodeCompany()
     {
        try{
-          const response = await fetch('http://localhost:8080/project/getProjectsByCodeCompany?codeCompany='+ this.empresa_code, 
+          const response = await fetch(Vue.prototype.$urlhermes + '/project/getProjectsByCodeCompany?codeCompany='+ this.empresa_code, 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -304,7 +311,7 @@ export default {
             "codeCompany":this.empresa_code,
             "active":this.active_selected
           }
-          const response = await fetch('http://localhost:8080/project', 
+          const response = await fetch(Vue.prototype.$urlhermes + '/project', 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -348,7 +355,7 @@ export default {
             "codeCompany":this.empresa_code,
             "active":this.active_selected
           }
-          const response = await fetch('http://localhost:8080/project', 
+          const response = await fetch(Vue.prototype.$urlhermes + '/project', 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -377,7 +384,7 @@ export default {
     {
         try {
 
-          const response = await fetch('http://localhost:8080/project/' + this.id_selected, 
+          const response = await fetch(Vue.prototype.$urlhermes + '/project/' + this.id_selected, 
                     {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
@@ -464,7 +471,18 @@ export default {
     validate() {
       return this.name_selected != '' && this.code_selected != ''; 
     },
+
+    getUrlDedication(item){
+      return '/dedication?code=' + item.code + "&name=" + item.name + "&codeEmpresa="+this.empresa_code;
+    },
   
   },
 };
 </script>
+
+
+<style lang="scss">
+#no-background-hover::before {
+   background-color: transparent !important;
+}
+</style>
