@@ -1,6 +1,6 @@
 <template>
   <div class="visitsListComponent">
-    <h2 class="fontPrincipal">{{ title }} {{ proyecto_name }}</h2>
+    <h2 class="fontPrincipal">{{ title }} &lt; {{ proyecto_name }} &gt;</h2>
 
     <v-snackbar
       v-model="snackbar"
@@ -23,20 +23,9 @@
       </template>
     </v-snackbar>
 
-    <v-data-table
-      
-      :headers="headers"
-      :items="dedications"
-      show-expand
-    >
-
-      <template v-slot:top>
-        <v-toolbar flat>
-      
-          <v-spacer></v-spacer>
-
-          <v-row
-          style="margin-top: 20px;">
+    <v-row
+          >
+          <v-col align-self="center">
             <v-autocomplete
               v-model="user_selection"
               :items="users"                                            
@@ -47,26 +36,36 @@
               color="#175380"
               item-color="black"
               @change="getAllDedicationsByUserAndCodeCompany"
-            ></v-autocomplete> 
+            ></v-autocomplete>
+          </v-col>
+          <v-spacer></v-spacer>
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="show_create_dedication_dialog">
+                    <v-icon class="mr-2" @click="show_create_dedication_dialog()">
+                      mdi-plus
+                    </v-icon>
+                    <span class="white--text">Crear Dedicación</span>                                
+            </v-btn>
+          </v-col>          
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="back">
+                    <v-icon class="mr-2" @click="back">
+                      mdi-arrow-left
+                    </v-icon>
+                    <span class="white--text">Volver a proyectos</span>
+            </v-btn>
+          </v-col>
+                         
           </v-row>   
 
-          <v-row
-            align="center"
-            no-gutters
-            style="height: 150px;"
-          >
-          <v-col class="pa-8 ma-8">
-          </v-col>
-            <v-col align-self="end">              
-              <v-sheet class="pa-6 ma-6">
-                <span class="fontPrincipal word-break" @click="show_create_dedication_dialog()">Crear Dedicación</span>
-                <v-icon  class="mr-2" @click="show_create_dedication_dialog()">
-                mdi-plus
-              </v-icon>  
-              </v-sheet>
-            </v-col>                        
-          </v-row>
-                    
+    <v-data-table
+      
+      :headers="headers"
+      :items="dedications"
+      show-expand
+    >
+
+      <template v-slot:top>
           <v-dialog v-model="dialog" max-width="550px">
             <v-card>
               <v-card-title class="colorPrincipal">
@@ -149,7 +148,6 @@
               </v-card-actions>
             </v-card>
           </v-dialog>          
-        </v-toolbar>
       </template>
       <template v-slot:[`item.id`]="{ item }">
         <v-chip>
@@ -172,12 +170,23 @@
         </v-chip>
       </template>
       <template v-slot:[`item.actions`]="{ item }">
-        <v-icon class="mr-2" @click="show_edit_dedication_dialog(item)">
-          mdi-table-edit
-        </v-icon>
-        <v-icon class="mr-2" @click="show_delete_dedication_dialog(item)">>
-          mdi-delete
-        </v-icon>        
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_edit_dedication_dialog(item)">
+              mdi-table-edit
+            </v-icon>
+          </template>
+          <span>Editar Dedicación</span>
+        </v-tooltip> 
+
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_delete_dedication_dialog(item)">
+              mdi-delete
+            </v-icon>
+          </template>
+          <span>Eliminar Dedicación</span>
+        </v-tooltip>       
       </template>    
     </v-data-table>
   </div>
@@ -186,6 +195,7 @@
 <script>
   //import {DateTime} from 'luxon';
   import Vue from "vue";
+  import router from "../router";
   import DateTimeField from '@/components/DateTimeField'
   import {DateTime} from 'luxon';
 
@@ -481,6 +491,10 @@ export default {
     validate() {
       return this.hours_init_selected != '' && this.hours_end_selected != ''; 
     },
+
+    back(){
+      router.go(-1);
+    }
   
   },
 };

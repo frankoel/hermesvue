@@ -12,14 +12,36 @@
     <span class="white--text title fontPrincipal">HERMES TEAM SPHERE</span>
 
     <v-spacer></v-spacer>
-    
+
     <v-toolbar-items class="hidden-sm-and-down">
-        <v-btn class="btnPrincipal"
+
+      <v-btn class="btnPrincipal"
         v-for="item in get_all_items()"
         :key="item.text"
         :to="item.link"
-      >{{ item.text }}
+      >
+        <v-icon>
+          {{ item.icon }}
+        </v-icon>
+      {{ item.text }} 
       </v-btn>
+
+      <v-btn class="btnPrincipal">
+        <v-icon>
+            mdi-account-circle
+        </v-icon>
+        <span class="white--text">
+          John Doe
+        </span>
+        <v-avatar style="margin-left: 4px;">
+          <v-img
+            src="https://cdn.vuetifyjs.com/images/john.jpg"
+            alt="John"
+          >
+          </v-img>
+        </v-avatar>
+      </v-btn>
+
     </v-toolbar-items>
 
     <v-menu class="hidden-md-and-up">
@@ -36,6 +58,11 @@
         >
           <v-list-item-title>{{ item.text }}</v-list-item-title>
         </v-list-item>
+        <v-list-item
+          class="btnPrincipal"         
+        >
+          <v-list-item-title>Account Jonh Doe</v-list-item-title>
+        </v-list-item>        
       </v-list>
     </v-menu>
 
@@ -54,7 +81,7 @@ export default {
     selectedItem: 1,
     items: [
       { text: "INICIO", icon: "mdi-clock", link: "/", show_always: false },
-      { text: "COMPAÑÍAS", icon: "mdi-account", link: "/company", show_always: true },
+      { text: "COMPAÑÍAS", icon: "mdi-bank", link: "/company", show_always: true },
       { text: "CONTACTO", icon: "mdi-account", link: "/about", show_always: false },
     ],
   }),
@@ -86,3 +113,13 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.my-span {
+  background-color: blue;
+  color: white;
+  font-weight: bold;
+  margin-right: 0;
+  float: right;
+}
+</style>

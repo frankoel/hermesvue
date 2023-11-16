@@ -1,6 +1,6 @@
 <template>
   <div class="visitsListComponent">
-    <h2 class="fontPrincipal">{{ title }} {{ empresa_name }}</h2>
+    <h2 class="fontPrincipal">{{ title }} &lt; {{ empresa_name }} &gt;</h2>
 
     <v-snackbar
       v-model="snackbar"
@@ -23,6 +23,41 @@
       </template>
     </v-snackbar>
 
+    <v-row
+          style="margin-top: 20px;">
+          <v-col>
+            <v-autocomplete
+              v-model="code_selection"
+              :items="users_complete"                                            
+              rounded
+              filled
+              dense
+              label="Selecciona el usuario"
+              color="#175380"
+              item-color="black"
+              @change="getAllUsersByCodeCompany"
+            ></v-autocomplete> 
+          </v-col>
+          <v-spacer></v-spacer>
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="show_create_user_dialog">
+                    <v-icon class="mr-2" @click="show_create_user_dialog()">
+                      mdi-plus
+                    </v-icon>
+                    <span class="white--text">Crear Usuario</span>                                
+            </v-btn>
+          </v-col>          
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="back">
+                    <v-icon class="mr-2" @click="back">
+                      mdi-arrow-left
+                    </v-icon>
+                    <span class="white--text">Volver a empresas</span>
+            </v-btn>
+          </v-col>          
+      </v-row> 
+
+
     <v-data-table
       
       :headers="headers"
@@ -31,24 +66,6 @@
     >
 
       <template v-slot:top>
-        <v-toolbar flat>
-      
-          <v-row
-            align="center"
-            no-gutters
-            style="height: 150px;"
-          >
-          <v-col class="pa-8 ma-8">
-          </v-col>
-            <v-col align-self="end">              
-              <v-sheet class="pa-6 ma-6">
-                <span class="fontPrincipal word-break" @click="show_create_user_dialog()">Crear Usuario</span>
-                <v-icon  class="mr-2" @click="show_create_user_dialog()">
-                mdi-plus
-              </v-icon>  
-              </v-sheet>
-            </v-col>                        
-          </v-row>
                     
           <v-dialog v-model="dialog" max-width="550px">
             <v-card>
@@ -71,7 +88,7 @@
                     </v-text-field>
                     <v-text-field
                       v-model="code_selected"
-                      label="Code"
+                      label="Código"
                       filled
                       color="#175380"
                       rounded
@@ -82,7 +99,7 @@
 
                     <v-checkbox
                       v-model="admin_selected"
-                      label="Admin"
+                      label="Administrador"
                       color="#175380"
                       rounded
                       >    
@@ -90,7 +107,7 @@
 
                     <v-checkbox
                       v-model="active_selected"
-                      label="Active"
+                      label="Activo"
                       color="#175380"
                       rounded
                       >                      
@@ -133,7 +150,7 @@
                     </v-text-field>
                     <v-text-field
                       v-model="code_selected"
-                      label="Code"
+                      label="Código"
                       filled
                       readonly
                       color="#175380"
@@ -142,7 +159,7 @@
                     </v-text-field> 
                     <v-checkbox
                       v-model="admin_selected"
-                      label="Admin"
+                      label="Administrador"
                       color="#175380"
                       readonly
                       rounded
@@ -150,7 +167,7 @@
                     </v-checkbox>                   
                     <v-checkbox
                       v-model="active_selected"
-                      label="Active"
+                      label="Activo"
                       color="#175380"
                       readonly
                       rounded
@@ -171,7 +188,6 @@
               </v-card-actions>
             </v-card>
           </v-dialog>          
-        </v-toolbar>
       </template>
       <template v-slot:[`item.id`]="{ item }">
         <v-chip>
@@ -205,12 +221,23 @@
         </v-chip>        
       </template>  
       <template v-slot:[`item.actions`]="{ item }">         
-        <v-icon class="mr-2" @click="show_edit_user_dialog(item)">
-          mdi-table-edit
-        </v-icon>
-        <v-icon class="mr-2" @click="show_delete_user_dialog(item)">>
-          mdi-delete
-        </v-icon>        
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_edit_user_dialog(item)">
+              mdi-table-edit
+            </v-icon>
+          </template>
+          <span>Editar Usuario</span>
+        </v-tooltip> 
+
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_delete_user_dialog(item)">
+              mdi-delete
+            </v-icon>
+          </template>
+          <span>Eliminar Usuario</span>
+        </v-tooltip>       
       </template>    
     </v-data-table>
   </div>
@@ -219,6 +246,7 @@
 <script>
 //import { Datetime } from 'vue-datetime';
 import Vue from "vue";
+import router from "../router";
 
 export default {
   name: "UserListComponent",
@@ -230,6 +258,7 @@ export default {
 
   data: () => ({
     users: [],
+    users_complete: [],
     id_selected:"",
     name_selected:"",
     code_selected:"",
@@ -239,6 +268,7 @@ export default {
     edit_title: "",
     type:"create",
     texto:"",
+    code_selection:"",
     dialog: false,
     dialog_delete: false,
     nameRules: [
@@ -256,19 +286,55 @@ export default {
       { text: "Nombre Usuario", value: "name", sortable: true },
       { text: "Código", value: "code", sortable: true },
       { text: "Administrador", value: "admin", sortable: false },
-      { text: "Activa", value: "active", sortable: true },
+      { text: "Activo", value: "active", sortable: false },
       { text: "", value: "actions", align: "left", sortable: false },
     ],
   }),
   created() {
     this.initialize();
 
+    this.code_selection = 'Todos';
     this.getAllUsersByCodeCompany();
 
   },
   methods: {
+
+    async getUserByCode()
+    {
+       try{
+          let code_filter = "";
+          if (this.code_selection != 'Todos')
+          {
+            let arr = this.code_selection.split('--');
+            code_filter = arr[1].trim();
+          }
+
+          const response = await fetch(Vue.prototype.$urlhermes + '/user/getUserByCode?code='+ code_filter, 
+                    {
+                      headers: new Headers({
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'Accept': '*/*',
+                      }), 
+                      mode: 'cors', 
+                      method: 'GET',
+                    });
+          const res_json = await response.json();
+          console.log(res_json);
+          
+          this.users = [];
+          this.users.push(res_json);
+
+        } catch (error) {
+          console.log("Error occurred:", error);
+          this.users = [];
+        }
+    },
+
     async getAllUsersByCodeCompany()
     {
+      if (this.code_selection == 'Todos')
+        {
+
        try{
           const response = await fetch(Vue.prototype.$urlhermes + '/user/getUsersByCodeCompany?codeCompany='+ this.empresa_code, 
                     {
@@ -282,10 +348,22 @@ export default {
           const res_json = await response.json();
           console.log(res_json);
           this.users = res_json;
+   
+          this.users_complete = [];
+          this.users_complete.push('Todos');
+          res_json.forEach(element => {
+            this.users_complete.push(element.name + " -- " + element.code);
+          });
+
         } catch (error) {
           console.log("Error occurred:", error);
           this.users = [];
         }
+      }
+      else
+      {
+        this.getUserByCode();
+      }
     },
 
     async createUser() 
@@ -321,6 +399,7 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
+          this.code_selection = 'Todos';
           this.getAllUsersByCodeCompany();     
           
           this.close();
@@ -366,6 +445,7 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
+          this.code_selection = 'Todos';
           this.getAllUsersByCodeCompany();     
           
           this.close();
@@ -394,11 +474,18 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.getAllUsersByCodeCompany();   
-          
-          this.close_delete();
 
-          this.texto = "Usuario eliminado correctamente";
+          if(response.status == 400)
+          {
+            this.texto = "Usuario no eliminado por dependencias";
+          }
+          else
+          {
+            this.code_selection = "Todos";
+            this.getAllUsersByCodeCompany(); 
+            this.texto = "Usuario eliminado correctamente";  
+          }
+          this.close_delete();
           this.snackbar = true;
 
         } catch (error) {
@@ -478,6 +565,10 @@ export default {
 
     validate() {
       return this.name_selected != '' && this.code_selected != ''; 
+    },
+
+    back(){
+      router.go(-1);
     },
   
   },

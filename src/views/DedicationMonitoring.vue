@@ -2,7 +2,7 @@
   <div>
     <h1 class="fontPrincipal">Dedicaciones</h1>
     <DedicationListComponent title="Todos las dedicaciones del proyecto " :proyecto_name="this.name" 
-    :proyecto_code="this.code" :empresa_code="this.codeEmpresa"/>
+    :proyecto_code="this.code" :empresa_code="this.codeCompany"/>
   </div>
 </template>
 
@@ -18,7 +18,7 @@ export default {
   created() {
     this.name = this.$route.query.name;
     this.code = this.$route.query.code;
-    this.codeEmpresa = this.$route.query.codeEmpresa;
+    this.codeCompany = this.$route.query.codeCompany;
   },  
   methods: {},
 

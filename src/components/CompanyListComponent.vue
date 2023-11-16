@@ -23,6 +23,32 @@
       </template>
     </v-snackbar>
 
+    <v-row
+          style="margin-top: 20px;">
+          <v-col>
+            <v-autocomplete
+              v-model="code_selection"
+              :items="comps_complete"                                            
+              rounded
+              filled
+              dense
+              label="Selecciona la empresa"
+              color="#175380"
+              item-color="black"
+              @change="getAllCompanies"
+            ></v-autocomplete> 
+          </v-col>
+          <v-spacer></v-spacer>
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="show_create_company_dialog">
+                    <v-icon class="mr-2" @click="show_create_company_dialog()">
+                      mdi-plus
+                    </v-icon>
+                    <span class="white--text">Crear Empresa</span>                                
+            </v-btn>
+          </v-col>          
+     </v-row>  
+
     <v-data-table
       
       :headers="headers"
@@ -30,43 +56,7 @@
       show-expand
     >
 
-      <template v-slot:top>
-        <v-toolbar flat>
-      
-          <v-spacer></v-spacer>
-
-          <v-row
-          style="margin-top: 20px;">
-            <v-autocomplete
-              v-model="code_selection"
-              :items="comps_complete"                                            
-              rounded
-              filled
-              dense
-              label="Selecciona la compañía"
-              color="#175380"
-              item-color="black"
-              @change="getAllCompanies"
-            ></v-autocomplete> 
-          </v-row>  
-
-          <v-row
-            align="center"
-            no-gutters
-            style="height: 150px;"
-          >
-          <v-col class="pa-8 ma-8">
-          </v-col>
-            <v-col align-self="end">              
-              <v-sheet class="pa-6 ma-6">
-                <span class="fontPrincipal word-break" @click="show_create_company_dialog()">Crear Empresa</span>
-                <v-icon  class="mr-2" @click="show_create_company_dialog()">
-                mdi-plus
-              </v-icon>  
-              </v-sheet>
-            </v-col>                        
-          </v-row>
-                    
+      <template v-slot:top>         
           <v-dialog v-model="dialog" max-width="550px">
             <v-card>
               <v-card-title class="colorPrincipal">
@@ -99,7 +89,7 @@
       
                     <v-checkbox
                       v-model="active_selected"
-                      label="Active"
+                      label="Activa"
                       color="#175380"
                       rounded
                       >                      
@@ -151,7 +141,7 @@
                     </v-text-field> 
                     <v-checkbox
                       v-model="active_selected"
-                      label="Active"
+                      label="Activa"
                       color="#175380"
                       readonly
                       rounded
@@ -172,7 +162,6 @@
               </v-card-actions>
             </v-card>
           </v-dialog>          
-        </v-toolbar>
       </template>
       <template v-slot:[`item.id`]="{ item }">
         <v-chip>
@@ -200,23 +189,47 @@
         <v-btn icon id="no-background-hover"
           :href= getUrlProject(item)
           >
-          <v-icon class="mr-2">
-          mdi-briefcase
-        </v-icon>
-      </v-btn>  
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon class="mr-2" v-on="on" @click="getUrlProject(item)">
+                mdi-briefcase
+              </v-icon>
+            </template>
+            <span>Gestionar Proyectos</span>
+          </v-tooltip> 
+        </v-btn>  
+
         <v-btn icon id="no-background-hover"
-          :href= getUrlUser(item)
-          >
-          <v-icon class="mr-2">
-          mdi-account
-        </v-icon>         
-      </v-btn>          
-        <v-icon class="mr-2" @click="show_edit_company_dialog(item)">
-          mdi-table-edit
-        </v-icon>
-        <v-icon class="mr-2" @click="show_delete_company_dialog(item)">>
-          mdi-delete
-        </v-icon>        
+            :href= getUrlUser(item)
+            >
+            <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon class="mr-2" v-on="on" @click="getUrlUser(item)">
+                mdi-account
+              </v-icon>
+            </template>
+            <span>Gestionar Usuarios</span>
+          </v-tooltip>        
+        </v-btn>          
+
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_edit_company_dialog(item)">
+              mdi-table-edit
+            </v-icon>
+          </template>
+          <span>Editar Empresa</span>
+        </v-tooltip> 
+
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_delete_company_dialog(item)">
+              mdi-delete
+            </v-icon>
+          </template>
+          <span>Eliminar Empresa</span>
+        </v-tooltip> 
+
       </template>    
     </v-data-table>
   </div>
@@ -450,12 +463,17 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection == 'Todas';
-          this.getAllCompanies();   
-          
+          if(response.status == 400)
+          {
+            this.texto = "Empresa no eliminada por dependencias";
+          }
+          else
+          {
+            this.code_selection = "Todas";
+            this.getAllCompanies(); 
+            this.texto = "Empresa eliminada correctamente";  
+          }
           this.close_delete();
-
-          this.texto = "Empresa eliminada correctamente";
           this.snackbar = true;
 
         } catch (error) {

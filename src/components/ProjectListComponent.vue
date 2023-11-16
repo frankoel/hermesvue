@@ -1,6 +1,6 @@
 <template>
   <div class="visitsListComponent">
-    <h2 class="fontPrincipal">{{ title }} {{ empresa_name }}</h2>
+    <h2 class="fontPrincipal">{{ title }} &lt; {{ empresa_name }} &gt; </h2>
 
     <v-snackbar
       v-model="snackbar"
@@ -23,6 +23,40 @@
       </template>
     </v-snackbar>
 
+    <v-row
+          style="margin-top: 20px;">
+          <v-col>
+            <v-autocomplete
+              v-model="code_selection"
+              :items="projects_complete"                                            
+              rounded
+              filled
+              dense
+              label="Selecciona el proyecto"
+              color="#175380"
+              item-color="black"
+              @change="getAllProjectsByCodeCompany"
+            ></v-autocomplete> 
+          </v-col>
+          <v-spacer></v-spacer>
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="show_create_project_dialog">
+                    <v-icon class="mr-2" @click="show_create_project_dialog()">
+                      mdi-plus
+                    </v-icon>
+                    <span class="white--text">Crear Proyecto</span>                                
+            </v-btn>
+          </v-col>          
+          <v-col align-self="start">
+            <v-btn class="btnPrincipal" text @click="back">
+                    <v-icon class="mr-2" @click="back">
+                      mdi-arrow-left
+                    </v-icon>
+                    <span class="white--text">Volver a empresas</span>
+            </v-btn>
+          </v-col>          
+      </v-row> 
+
     <v-data-table
       
       :headers="headers"
@@ -31,24 +65,6 @@
     >
 
       <template v-slot:top>
-        <v-toolbar flat>
-      
-          <v-row
-            align="center"
-            no-gutters
-            style="height: 150px;"
-          >
-          <v-col class="pa-8 ma-8">
-          </v-col>
-            <v-col align-self="end">              
-              <v-sheet class="pa-6 ma-6">
-                <span class="fontPrincipal word-break" @click="show_create_project_dialog()">Crear Proyecto</span>
-                <v-icon  class="mr-2" @click="show_create_project_dialog()">
-                mdi-plus
-              </v-icon>  
-              </v-sheet>
-            </v-col>                        
-          </v-row>
                     
           <v-dialog v-model="dialog" max-width="550px">
             <v-card>
@@ -172,8 +188,7 @@
                 </v-btn>  
               </v-card-actions>
             </v-card>
-          </v-dialog>          
-        </v-toolbar>
+          </v-dialog>
       </template>
       <template v-slot:[`item.id`]="{ item }">
         <v-chip>
@@ -207,16 +222,34 @@
         <v-btn icon id="no-background-hover"
           :href= getUrlDedication(item)
           >
-          <v-icon class="mr-2">
-          mdi-timetable
-        </v-icon>
-      </v-btn>                   
-        <v-icon class="mr-2" @click="show_edit_project_dialog(item)">
-          mdi-table-edit
-        </v-icon>
-        <v-icon class="mr-2" @click="show_delete_project_dialog(item)">>
-          mdi-delete
-        </v-icon>        
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-icon class="mr-2" v-on="on" @click="getUrlDedication(item)">
+                mdi-timetable
+              </v-icon>
+            </template>
+            <span>Gestionar Dedicaciones</span>
+          </v-tooltip> 
+
+        </v-btn> 
+
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_edit_project_dialog(item)">
+              mdi-table-edit
+            </v-icon>
+          </template>
+          <span>Editar Proyecto</span>
+        </v-tooltip> 
+
+        <v-tooltip bottom>
+          <template #activator="{ on }">
+            <v-icon class="mr-2" v-on="on" @click="show_delete_project_dialog(item)">
+              mdi-delete
+            </v-icon>
+          </template>
+          <span>Eliminar Proyecto</span>
+        </v-tooltip>
       </template>    
     </v-data-table>
   </div>
@@ -224,6 +257,7 @@
 
 <script>
 import Vue from "vue";
+import router from "../router";
 
 export default {
   name: "ProjectListComponent",
@@ -235,6 +269,7 @@ export default {
 
   data: () => ({
     projects: [],
+    projects_complete: [],
     id_selected:"",
     name_selected:"",
     code_selected:"",
@@ -243,6 +278,7 @@ export default {
     edit_title: "",
     type:"create",
     texto:"",
+    code_selection:"",
     dialog: false,
     dialog_delete: false,
     nameRules: [
@@ -260,19 +296,54 @@ export default {
       { text: "Nombre Proyecto", value: "name", sortable: true },
       { text: "Código", value: "code", sortable: true },
       { text: "Descripción", value: "description", sortable: false },
-      { text: "Activa", value: "active", sortable: true },
+      { text: "Activo", value: "active", sortable: true },
       { text: "", value: "actions", align: "left", sortable: false },
     ],
   }),
   created() {
     this.initialize();
 
+    this.code_selection = "Todos";
     this.getAllProjectsByCodeCompany();
 
   },
   methods: {
+
+    async getProjectByCode()
+    {
+       try{
+          let code_filter = "";
+          if (this.code_selection != 'Todos')
+          {
+            let arr = this.code_selection.split('--');
+            code_filter = arr[1].trim();
+          }
+
+          const response = await fetch(Vue.prototype.$urlhermes + '/project/getProjectByCode?code='+ code_filter, 
+                    {
+                      headers: new Headers({
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        'Accept': '*/*',
+                      }), 
+                      mode: 'cors', 
+                      method: 'GET',
+                    });
+          const res_json = await response.json();
+          console.log(res_json);
+          
+          this.projects = [];
+          this.projects.push(res_json);
+
+        } catch (error) {
+          console.log("Error occurred:", error);
+          this.projects = [];
+        }
+    },
+
     async getAllProjectsByCodeCompany()
     {
+      if(this.code_selection == "Todos")
+      {
        try{
           const response = await fetch(Vue.prototype.$urlhermes + '/project/getProjectsByCodeCompany?codeCompany='+ this.empresa_code, 
                     {
@@ -286,10 +357,21 @@ export default {
           const res_json = await response.json();
           console.log(res_json);
           this.projects = res_json;
+
+          this.projects_complete = [];
+          this.projects_complete.push('Todos');
+          res_json.forEach(element => {
+            this.projects_complete.push(element.name + " -- " + element.code);
+          });
+
         } catch (error) {
           console.log("Error occurred:", error);
           this.projects = [];
         }
+      }
+      else{
+        this.getProjectByCode();
+      }
     },
 
     async createProject() 
@@ -324,6 +406,7 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
+          this.code_selection = "Todos";
           this.getAllProjectsByCodeCompany();     
           
           this.close();
@@ -368,6 +451,7 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
+          this.code_selection = "Todos";
           this.getAllProjectsByCodeCompany();     
           
           this.close();
@@ -395,12 +479,17 @@ export default {
                     });
           const res_json = await response.text();
           console.log(res_json);
-          
-          this.getAllProjectsByCodeCompany();   
-          
+          if(response.status == 400)
+          {
+            this.texto = "Proyecto no eliminado por dependencias";
+          }
+          else
+          {
+            this.code_selection = "Todos";
+            this.getAllProjectsByCodeCompany(); 
+            this.texto = "Proyecto eliminado correctamente";  
+          }
           this.close_delete();
-
-          this.texto = "Proyecto eliminado correctamente";
           this.snackbar = true;
 
         } catch (error) {
@@ -473,7 +562,11 @@ export default {
     },
 
     getUrlDedication(item){
-      return '/dedication?code=' + item.code + "&name=" + item.name + "&codeEmpresa="+this.empresa_code;
+      return '/dedication?code=' + item.code + "&name=" + item.name + "&codeCompany="+this.empresa_code;
+    },
+
+    back(){
+      router.go(-1);
     },
   
   },
