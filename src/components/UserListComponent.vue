@@ -298,9 +298,6 @@ export default {
     nameRules: [
       v => !!v || 'dato requerido',
     ],
-    /*emailRules: [ 
-        v => !v || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail debe ser válido'
-    ],*/
     emailRules: [
         value => {
           if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value)) 
@@ -335,12 +332,6 @@ export default {
   },
   methods: {
 
-    validateEmail()
-    {
-      if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(this.email_selected)) 
-            return true;
-      return false;
-    },
     async getUserByCode()
     {
        try{
@@ -612,6 +603,13 @@ export default {
 
     validate() {
       return this.name_selected != '' && this.code_selected != '' && this.validateEmail();
+    },
+
+    validateEmail()
+    {
+      if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(this.email_selected)) 
+            return true;
+      return false;
     },
 
     back(){
