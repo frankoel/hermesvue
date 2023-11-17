@@ -23,8 +23,8 @@
       </template>
     </v-snackbar>
 
-    <v-row
-          >
+    <v-row style="margin-top: 20px;">
+          
           <v-col align-self="center">
             <v-autocomplete
               v-model="user_selection"
