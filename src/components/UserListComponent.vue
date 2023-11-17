@@ -96,7 +96,14 @@
                       required
                       dense>
                     </v-text-field> 
-
+                    <v-text-field
+                      v-model="email_selected"
+                      label="Email"
+                      filled
+                      color="#175380"
+                      rounded                    
+                      dense>
+                    </v-text-field> 
                     <v-checkbox
                       v-model="admin_selected"
                       label="Administrador"
@@ -157,6 +164,15 @@
                       rounded                    
                       dense>
                     </v-text-field> 
+                    <v-text-field
+                      v-model="email_selected"
+                      label="Email"
+                      filled
+                      readonly
+                      color="#175380"
+                      rounded                    
+                      dense>
+                    </v-text-field>                    
                     <v-checkbox
                       v-model="admin_selected"
                       label="Administrador"
@@ -204,6 +220,11 @@
           {{ item.code }}
         </v-chip>
       </template>
+      <template v-slot:[`item.email`]="{ item }">
+        <v-chip>
+          {{ item.email }}
+        </v-chip>
+      </template>      
       <template v-slot:[`item.admin`]="{ item }">
         <v-chip v-if="is_admin(item)">
           SI
@@ -264,6 +285,7 @@ export default {
     code_selected:"",
     admin_selected:"",
     active_selected:true,
+    email_selected:"",
     password_selected:"",
     edit_title: "",
     type:"create",
@@ -285,6 +307,7 @@ export default {
       },
       { text: "Nombre Usuario", value: "name", sortable: true },
       { text: "Código", value: "code", sortable: true },
+      { text: "Email", value: "email", sortable: true },
       { text: "Administrador", value: "admin", sortable: false },
       { text: "Activo", value: "active", sortable: false },
       { text: "", value: "actions", align: "left", sortable: false },
@@ -383,6 +406,7 @@ export default {
             "name":this.name_selected,
             "admin":this.admin_selected,
             "password":this.password_selected,
+            "email": this.email_selected,
             "companyCode":this.empresa_code,
             "active":this.active_selected
           }
@@ -429,6 +453,7 @@ export default {
             "name":this.name_selected,
             "admin":this.admin_selected,
             "password":this.password_selected,
+            "email": this.email_selected,
             "companyCode":this.empresa_code,
             "active":this.active_selected
           }
@@ -505,6 +530,7 @@ export default {
       this.code_selected = '';
       this.admin_selected = true;
       this.password_selected = Math.ceil(Math.random()*100000000000);
+      this.email_selected = '';
       this.active_selected = true;
       this.dialog = true;
       this.type = 'create';
@@ -517,6 +543,7 @@ export default {
       this.code_selected = item.code;
       this.admin_selected = item.admin;
       this.password_selected = Math.ceil(Math.random()*100000000000);
+      this.email_selected = item.email;
       this.active_selected = item.active;
       this.dialog = true;
       this.type = 'update';
@@ -527,6 +554,7 @@ export default {
       this.name_selected = item.name;
       this.code_selected = item.code;
       this.admin_selected = item.admin;
+      this.email_selected = item.email;
       this.active_selected = item.active;
       this.dialog_delete = true;
     },
