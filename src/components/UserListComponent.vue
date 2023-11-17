@@ -100,6 +100,7 @@
                       v-model="email_selected"
                       label="Email"
                       filled
+                      :rules="emailRules"
                       color="#175380"
                       rounded                    
                       dense>
@@ -293,9 +294,21 @@ export default {
     code_selection:"",
     dialog: false,
     dialog_delete: false,
+    error: false,
     nameRules: [
       v => !!v || 'dato requerido',
     ],
+    /*emailRules: [ 
+        v => !v || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail debe ser válido'
+    ],*/
+    emailRules: [
+        value => {
+          if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value)) 
+            return true
+          
+          return 'E-mail debe ser válido'
+        },
+      ],    
     snackbar: false,
     timeout: 4000,
     headers: [
@@ -322,6 +335,12 @@ export default {
   },
   methods: {
 
+    validateEmail()
+    {
+      if (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(this.email_selected)) 
+            return true;
+      return false;
+    },
     async getUserByCode()
     {
        try{
@@ -592,7 +611,7 @@ export default {
     },
 
     validate() {
-      return this.name_selected != '' && this.code_selected != ''; 
+      return this.name_selected != '' && this.code_selected != '' && this.validateEmail();
     },
 
     back(){
