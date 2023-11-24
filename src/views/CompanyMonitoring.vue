@@ -10,8 +10,9 @@ import CompanyListComponent from "@/components/CompanyListComponent";
 
 export default {
   name: "CompanyMonitoring",
-  data: () => ({}),
-  methods: {},
+  data: () => ({}),  
+  methods: {
+  },
 
   components: {
     CompanyListComponent,

@@ -6,6 +6,7 @@ import vuetify from "./plugins/vuetify";
 Vue.config.productionTip = false;
 
 Vue.prototype.$urlhermes= 'http://localhost:8080';
+Vue.prototype.$token='';
 
 new Vue({
   router,

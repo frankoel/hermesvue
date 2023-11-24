@@ -238,16 +238,19 @@
 <script>
 //import { Datetime } from 'vue-datetime';
 import Vue from "vue";
+import TokenService from '../services/TokenService.js';
 
 export default {
   name: "CompanyListComponent",
   props: ["title"],
 
   components: {
+   
     //Datetime,
   },
 
   data: () => ({
+    itokens: 0,
     comps: [],
     comps_complete: [],
     id_selected:"",
@@ -281,16 +284,10 @@ export default {
   created() {
     this.initialize();
 
-    /*let a = {"id":4,
-      "name": "ejemplo",
-      "code": "LAQUESEA",
-      "active":"True",
-    }
-    this.comps.push(a);*/
-
+    TokenService.getToken();
     this.code_selection = 'Todas';
-    this.getAllCompanies();
-
+    setTimeout(() => this.getAllCompanies(), 1000);
+  
   },
   methods: {
 
@@ -309,14 +306,26 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'GET',
                     });
           const res_json = await response.json();
           console.log(res_json);
-          this.comps = [];
-          this.comps.push(res_json);
+
+          if (response.ok)
+          { 
+            this.itokens = 0;
+            this.comps = [];
+            this.comps.push(res_json);
+          }
+          else if(response.status == '403' && res_json.details.includes('expired') && this.itokens < 3)
+          {            
+            this.itokens = this.itokens + 1;
+            TokenService.getToken();
+            setTimeout(() => this.getAllCompanies(), 1000);                  
+          }   
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -336,19 +345,32 @@ export default {
                         headers: new Headers({
                           'Content-Type': 'application/json;charset=UTF-8',
                           'Accept': '*/*',
+                          'Authorization':'Bearer ' + Vue.prototype.$token,
                         }), 
                         mode: 'cors', 
                         method: 'GET',
                       });
             const res_json = await response.json();
             console.log(res_json);
-            this.comps = res_json;
 
-            this.comps_complete = [];
-            this.comps_complete.push('Todas');
-            res_json.forEach(element => {
-            this.comps_complete.push(element.name + " -- " + element.code);
-          });
+
+            if (response.ok)
+            {  
+              this.itokens = 0;
+              this.comps = res_json;
+
+              this.comps_complete = [];
+              this.comps_complete.push('Todas');
+              res_json.forEach(element => {
+                this.comps_complete.push(element.name + " -- " + element.code);
+              });
+            }
+            else if(response.status == '403' && res_json.details.includes('expired') && this.itokens < 3)
+            {            
+              this.itokens = this.itokens + 1;
+              TokenService.getToken(); 
+              setTimeout(() => this.getAllCompanies(), 1000);                  
+            }            
 
           } catch (error) {
             console.log("Error occurred:", error);
@@ -383,6 +405,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'POST',
@@ -390,14 +413,21 @@ export default {
                     });
           const res_json = await response.text();
           console.log(res_json);
-          
-          this.code_selection == 'Todas';
-          this.getAllCompanies();     
-          
-          this.close();
 
-          this.texto = "Empresa creada correctamente";
-          this.snackbar = true;
+          if (response.ok)
+          {          
+            this.code_selection == 'Todas';
+            this.getAllCompanies();     
+            
+            this.close();
+
+            this.texto = "Empresa creada correctamente";
+            this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+              TokenService.getToken();        
+          }
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -426,6 +456,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'PUT',
@@ -434,13 +465,20 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection == 'Todas';
-          this.getAllCompanies();      
-          
-          this.close();
+          if (response.ok)
+          {  
+              this.code_selection == 'Todas';
+              this.getAllCompanies();      
+              
+              this.close();
 
-          this.texto = "Empresa actualizada correctamente";
-          this.snackbar = true;
+              this.texto = "Empresa actualizada correctamente";
+              this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+            TokenService.getToken();        
+          } 
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -456,6 +494,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'DELETE',
@@ -466,15 +505,21 @@ export default {
           if(response.status == 400)
           {
             this.texto = "Empresa no eliminada por dependencias";
+            this.close_delete();
+            this.snackbar = true;
           }
-          else
+          else if (response.ok)
           {
             this.code_selection = "Todas";
             this.getAllCompanies(); 
             this.texto = "Empresa eliminada correctamente";  
+            this.close_delete();
+            this.snackbar = true;
           }
-          this.close_delete();
-          this.snackbar = true;
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+            TokenService.getToken();        
+          } 
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -482,7 +527,6 @@ export default {
 
 
     },
-
 
     initialize() {
 

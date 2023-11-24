@@ -198,6 +198,7 @@
   import router from "../router";
   import DateTimeField from '@/components/DateTimeField'
   import {DateTime} from 'luxon';
+  import TokenService from '../services/TokenService.js';
 
 export default {
   name: "DedicationListComponent",
@@ -209,6 +210,7 @@ export default {
   },
 
   data: () => ({
+    itokens: 0,
     dedications: [],
     id_selected:"",
     hours_init_selected: "",
@@ -247,7 +249,11 @@ export default {
   created() {
     this.initialize();
 
-    this.getAllUsersByCodeCompany();
+    
+    TokenService.getToken();
+
+    setTimeout(() => this.getAllUsersByCodeCompany(), 1000);
+
 
   },
   computed: {
@@ -268,6 +274,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'GET',
@@ -275,9 +282,19 @@ export default {
           const res_json = await response.json();
           console.log(res_json);
           
-          res_json.forEach(element => {
-            this.users.push(element.code + " -- " + element.name);
-          });
+          if (response.ok)
+          { 
+            res_json.forEach(element => {
+              this.users.push(element.code + " -- " + element.name);
+            });
+          }
+          else if(response.status == '403' && res_json.details.includes('expired') && this.itokens < 3)
+          {            
+            this.itokens = this.itokens + 1;
+            TokenService.getToken(); 
+            setTimeout(() => this.getAllUsersByCodeCompany(), 1000);                  
+          } 
+
         } catch (error) {
           console.log("Error occurred:", error);
           this.users = [];
@@ -300,13 +317,24 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'GET',
                     });
           const res_json = await response.json();
           console.log(res_json);
-          this.dedications = res_json;
+          if (response.ok)
+          {            
+            this.dedications = res_json;
+          }
+          else if(response.status == '403' && res_json.details.includes('expired') && this.itokens < 3)
+          {            
+            this.itokens = this.itokens + 1;
+            TokenService.getToken(); 
+            setTimeout(() => this.getAllDedicationsByUserAndCodeCompany(), 1000);                  
+          }             
+
         } catch (error) {
           console.log("Error occurred:", error);
           this.dedications = [];
@@ -337,6 +365,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'POST',
@@ -345,12 +374,19 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.getAllDedicationsByUserAndCodeCompany();     
-          
-          this.close();
+          if (response.ok)
+          {
+            this.getAllDedicationsByUserAndCodeCompany();     
+            
+            this.close();
 
-          this.texto = "Dedicación creada correctamente";
-          this.snackbar = true;
+            this.texto = "Dedicación creada correctamente";
+            this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+              TokenService.getToken();        
+          }              
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -381,6 +417,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'PUT',
@@ -389,12 +426,19 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.getAllDedicationsByUserAndCodeCompany();     
-          
-          this.close();
+          if (response.ok)
+          {   
+            this.getAllDedicationsByUserAndCodeCompany();     
+            
+            this.close();
 
-          this.texto = "Dedicación actualizada correctamente";
-          this.snackbar = true;
+            this.texto = "Dedicación actualizada correctamente";
+            this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+            TokenService.getToken();        
+          }              
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -410,6 +454,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'DELETE',
@@ -417,12 +462,19 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.getAllDedicationsByUserAndCodeCompany();   
-          
-          this.close_delete();
+          if (response.ok)
+          {
+            this.getAllDedicationsByUserAndCodeCompany();   
+            
+            this.close_delete();
 
-          this.texto = "Dedicación eliminada correctamente";
-          this.snackbar = true;
+            this.texto = "Dedicación eliminada correctamente";
+            this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+            TokenService.getToken();        
+          }          
 
         } catch (error) {
           console.log("Error occurred:", error);

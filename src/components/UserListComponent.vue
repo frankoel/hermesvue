@@ -269,6 +269,7 @@
 //import { Datetime } from 'vue-datetime';
 import Vue from "vue";
 import router from "../router";
+import TokenService from '../services/TokenService.js';
 
 export default {
   name: "UserListComponent",
@@ -279,6 +280,7 @@ export default {
   },
 
   data: () => ({
+    itokens: 0,
     users: [],
     users_complete: [],
     id_selected:"",
@@ -326,8 +328,9 @@ export default {
   created() {
     this.initialize();
 
+    TokenService.getToken();
     this.code_selection = 'Todos';
-    this.getAllUsersByCodeCompany();
+    setTimeout(() => this.getAllUsersByCodeCompany(), 1000);
 
   },
   methods: {
@@ -347,6 +350,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'GET',
@@ -354,8 +358,18 @@ export default {
           const res_json = await response.json();
           console.log(res_json);
           
-          this.users = [];
-          this.users.push(res_json);
+          if (response.ok)
+          { 
+            this.itokens = 0;
+            this.users = [];
+            this.users.push(res_json);
+          }
+          else if(response.status == '403' && res_json.details.includes('expired') && this.itokens < 3)
+          {            
+            this.itokens = this.itokens + 1;
+            TokenService.getToken();
+            setTimeout(() => this.getAllUsersByCodeCompany(), 1000);                  
+          }              
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -374,19 +388,31 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'GET',
                     });
           const res_json = await response.json();
           console.log(res_json);
-          this.users = res_json;
+
+          if (response.ok)
+          {  
+            this.itokens = 0;              
+            this.users = res_json;
    
-          this.users_complete = [];
-          this.users_complete.push('Todos');
-          res_json.forEach(element => {
-            this.users_complete.push(element.name + " -- " + element.code);
-          });
+            this.users_complete = [];
+            this.users_complete.push('Todos');
+            res_json.forEach(element => {
+              this.users_complete.push(element.name + " -- " + element.code);
+            });
+          }
+          else if(response.status == '403' && res_json.details.includes('expired') && this.itokens < 3)
+          {            
+            this.itokens = this.itokens + 1;
+            TokenService.getToken(); 
+            setTimeout(() => this.getAllUsersByCodeCompany(), 1000);                  
+          }              
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -425,6 +451,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'POST',
@@ -433,13 +460,20 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection = 'Todos';
-          this.getAllUsersByCodeCompany();     
-          
-          this.close();
+          if (response.ok)
+          {   
+            this.code_selection = 'Todos';
+            this.getAllUsersByCodeCompany();     
+            
+            this.close();
 
-          this.texto = "Usuario creado correctamente";
-          this.snackbar = true;
+            this.texto = "Usuario creado correctamente";
+            this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+              TokenService.getToken();        
+          }              
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -472,6 +506,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'PUT',
@@ -480,13 +515,20 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-          this.code_selection = 'Todos';
-          this.getAllUsersByCodeCompany();     
-          
-          this.close();
+          if (response.ok)
+          {          
+            this.code_selection = 'Todos';
+            this.getAllUsersByCodeCompany();     
+            
+            this.close();
 
-          this.texto = "Usuario actualizado correctamente";
-          this.snackbar = true;
+            this.texto = "Usuario actualizado correctamente";
+            this.snackbar = true;
+          }
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+            TokenService.getToken();        
+          }             
 
         } catch (error) {
           console.log("Error occurred:", error);
@@ -502,6 +544,7 @@ export default {
                       headers: new Headers({
                         'Content-Type': 'application/json;charset=UTF-8',
                         'Accept': '*/*',
+                        'Authorization':'Bearer ' + Vue.prototype.$token,
                       }), 
                       mode: 'cors', 
                       method: 'DELETE',
@@ -509,19 +552,24 @@ export default {
           const res_json = await response.text();
           console.log(res_json);
           
-
           if(response.status == 400)
           {
             this.texto = "Usuario no eliminado por dependencias";
+            this.close_delete();
+            this.snackbar = true;            
           }
-          else
+          else if (response.ok)
           {
             this.code_selection = "Todos";
             this.getAllUsersByCodeCompany(); 
-            this.texto = "Usuario eliminado correctamente";  
+            this.texto = "Usuario eliminado correctamente";
+            this.close_delete();
+            this.snackbar = true;   
           }
-          this.close_delete();
-          this.snackbar = true;
+          else if(response.status == '403' && res_json.includes('expired'))
+          {
+            TokenService.getToken();        
+          }
 
         } catch (error) {
           console.log("Error occurred:", error);
