@@ -2,14 +2,14 @@
 
   <v-toolbar class="colorPrincipal" style="max-height: 66px">
 
-    <!--<v-img
-      lazy-src="@/assets/logo-all.png"
-      max-height="80"
-      max-width="80"
-      src="@/assets/logo-all.png">
-    </v-img>-->
+    <v-img
+      lazy-src="@/assets/logo.png"
+      max-height="60"
+      max-width="60"
+      src="@/assets/logo.png">
+    </v-img>
 
-    <span class="white--text title fontPrincipal">HERMES TEAM SPHERE</span>
+    <span style="margin-left:10px" class="white--text title fontPrincipal">HERMES TEAM SPHERE</span>
 
     <v-spacer></v-spacer>
 
